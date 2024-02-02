@@ -195,12 +195,12 @@ def analisis():
 
         # Add annotations to the boxplot
         for i, box in enumerate(ax.artists):
-	    # Get the statistical information for the box
-	    stats = df.groupby("Churn")[column].describe().T
-	    value = stats[i + 1]["mean"]  # You can change this to another statistical measure
+            # Get the statistical information for the box
+            stats = df.groupby("Churn")[column].describe().T
+            value = stats[i + 1]["mean"]  # You can change this to another statistical measure
 
-	    # Add annotation
-	    ax.text(i, value, f"{value:.2f}", ha="center", va="center", fontweight="bold", color="white")
+            # Add annotation
+            ax.text(i, value, f"{value:.2f}", ha="center", va="center", fontweight="bold", color="white")
 
     plt.tight_layout()
     st.pyplot(fig)
