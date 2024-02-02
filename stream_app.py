@@ -187,15 +187,21 @@ def analisis():
     numeric_columns = df.select_dtypes(include=["int64", "float64"]).columns
     fig, axes = plt.subplots(2, 2, figsize=(7, 5))
     axes = axes.flatten()
+
     for i, column in enumerate(tqdm(numeric_columns)):
         ax = axes[i]
         sns.boxplot(data=df, x="Churn", y=column, ax=ax)
         ax.set_title(f"{column} vs Churn Label", fontsize=10)
 
-        for k in ax.containers:
-            ax.bar_label(
-                k, fontsize=10, label_type="center", backgroundcolor="w", fmt="%.2f"
-            )
+        # Add annotations to the boxplot
+        for i, box in enumerate(ax.artists):
+	    # Get the statistical information for the box
+	    stats = df.groupby("Churn")[column].describe().T
+	    value = stats[i + 1]["mean"]  # You can change this to another statistical measure
+
+	    # Add annotation
+	    ax.text(i, value, f"{value:.2f}", ha="center", va="center", fontweight="bold", color="white")
+
     plt.tight_layout()
     st.pyplot(fig)
     st.markdown("""
