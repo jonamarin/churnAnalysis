@@ -485,3 +485,6 @@ def show_menu(menu):
     if 'action' in menu['items'][menu_selection] and menu['items'][menu_selection]['action']:
         menu['items'][menu_selection]['action']()
 show_menu(menu)
+
+# # if __name__ == '__main__':
+# # 	main()
