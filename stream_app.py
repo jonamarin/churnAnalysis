@@ -169,10 +169,24 @@ def analisis():
     df=pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv')
     #['customerID', 'gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'MonthlyCharges', 'TotalCharges', 'Churn']
     st.write(df.head())
+    with st.expander("Ver explicación"):
+        st.write("""
+            Los datos con los que se realiza el analisis tienen que ver con variables socio-demograficas como 
+            (edad, genero, etc) y del servicio que maneja cada cliente.
+        """)
     st.markdown('')
     fig = px.bar(df, x='Churn')
     st.plotly_chart(fig, use_container_width=True)
+    #colors=["lightgreen", "red"]
+    fig = px.pie(df, names='Churn')
+    st.plotly_chart(fig, use_container_width=True)
+    
     fig = px.box(df, x='Churn', y='tenure')
+    with st.expander("Ver explicación"):
+        st.write("""
+            La gráfica de arriba muestra la cantidad de abandono y no abandono del servicio. Observamos el desbalance
+            en esta clase, siendo mayor la cantidad de personas que no se retiran que aquellas que se retiran.
+        """)
     st.plotly_chart(fig, use_container_width=True)
     with st.expander("Ver explicación"):
         st.write("""
@@ -181,9 +195,37 @@ def analisis():
             mayor antiguedad son menos probables a renunciar al servicio, mientras que los más nuevos
             son mas propensos a cancelarlo.
         """)
+
+    num_bins = 20
+    fig, axes = plt.subplots(figsize=(6,4))
+    df.hist(bins=num_bins, ax=axes)
+    st.pyplot(fig)
+    ##################
+    # fig=plt.figure()
+    # ds_corr = df[['SeniorCitizen', 'Partner', 'Dependents',
+    #     'tenure', 'PhoneService', 'PaperlessBilling',
+    #         'MonthlyCharges', 'TotalCharges']]
+
+    # correlations = ds_corr.corrwith(df.Churn)
+    # correlations = correlations[correlations!=1]
+    # correlations.plot.bar(
+    #         figsize = (20, 10),
+    #         fontsize = 12,
+    #         color = '#9BCD9B',
+    #         rot = 40, grid = True)
+
+    # plt.title('Correlation with Churn Rate \n', horizontalalignment="center", fontstyle = "normal", fontsize = "20", fontfamily = "charter")
+    # st.pyplot(fig)
+
+    
     fig = px.pie(df, names='PaymentMethod')
     st.plotly_chart(fig, use_container_width=True)
-    
+    with st.expander("Ver explicación"):
+        st.write("""
+            La gráfica de arriba muestra la la preferencia entre los usuarios respecto al medio de pago.
+            Se puede observar que el medio preferido de pago es 'Electronic Check', seguido por 'Mailed check',
+            'Bank transfer' y por ultimo 'credit card'.
+        """)
     numeric_columns = df.select_dtypes(include=["int64", "float64"]).columns
     fig, axes = plt.subplots(2, 2, figsize=(7, 5))
     axes = axes.flatten()
@@ -227,16 +269,23 @@ def analisis():
     sns.heatmap(corr, annot=True, fmt=".2f", linecolor="c") #mask=mask,
     plt.title("Pearson's Correlation Matrix")
     st.pyplot(fig)
-
-
-    
-    #colors=["lightgreen", "red"]
-    fig = px.pie(df, names='Churn')
-    st.plotly_chart(fig, use_container_width=True)
-    
+    with st.expander("Ver explicación"):
+        st.write("""
+            Existe una correlación positiva entre la deserción y la edad de los clientes: la mayoría de las personas mayores abandonan. Quizás haya alguna campaña de los competidores dirigida a la población mayor.
+Lógicamente, una permanencia más prolongada también podría significar más lealtad y menos riesgo de abandono.
+También es lógico que más cargos mensuales puedan generar un mayor riesgo de abandono.
+Sin embargo, es interesante que los cargos totales muestren una correlación negativa con la deserción. La explicación puede ser que los cargos totales también dependen del tiempo que el cliente ha pasado con una empresa (la permanencia tiene una correlación negativa). Además, es cuestionable si TotalCharges es una variable adecuada para comprender el comportamiento del cliente y si el cliente lo rastrea.
+Una correlación positiva entre la facturación electrónica y la deserción es algo que necesita ser explorado más (no está claro cuáles pueden ser los factores que influyen en ese comportamiento).
+        """)
     fig = px.scatter(df,x='MonthlyCharges',y='TotalCharges')
     st.plotly_chart(fig, use_container_width=True)
-
+    
+    with st.expander("Ver explicación"):
+        st.write("""
+            La gráfica de arriba muestra la relación entre MonthlyCharges y TotalCharges, como se puede esperar,
+            los clientes que pagan valores mas altos mensualmente y suelen tener valores totales de cargo mayores.
+        """)
+    
     #############################################
     total_charge = df["TotalCharges"]
     missing = total_charge[~total_charge.str.replace(".", "").str.isdigit()]
@@ -420,7 +469,7 @@ def prediccion():
 		if file_upload is not None:
 
 			data = pd.read_csv(file_upload)
-			st.write(data)
+			#st.write(data)
 			#records = data.to_dict(orient='records')
 			X = dv.transform(data.to_dict(orient='records'))
 			y_pred = model.predict_proba(X)[0, 1]
@@ -491,6 +540,3 @@ def show_menu(menu):
     if 'action' in menu['items'][menu_selection] and menu['items'][menu_selection]['action']:
         menu['items'][menu_selection]['action']()
 show_menu(menu)
-
-# # if __name__ == '__main__':
-# # 	main()
