@@ -168,6 +168,15 @@ def inicio():
 def analisis():
     df=pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv')
     #['customerID', 'gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'MonthlyCharges', 'TotalCharges', 'Churn']
+    total_charge = df["TotalCharges"]
+    missing = total_charge[~total_charge.str.replace(".", "").str.isdigit()]
+    df["TotalCharges"] = df["TotalCharges"].apply(pd.to_numeric, errors="coerce")
+    
+    df.drop(
+        columns=["customerID"],
+        inplace=True,
+        errors="ignore",
+    )
     st.write(df.head())
     st.write("""
             Los datos con los que se realiza el analisis tienen que ver con variables socio-demograficas como 
@@ -272,14 +281,17 @@ def analisis():
     - Para los clientes que han abandonado, los cargos mensuales promedio son ligeramente más altos, alrededor de "74,44 dólares".
     - Esto indica que los clientes que han abandonado tienden a tener cargos mensuales ligeramente más altos en promedio.
     """)
-   
-    corr = df.corr(numeric_only=True)
-
-    #mask = np.triu(np.ones_like(corr, dtype=bool))
-
-    fig= plt.figure(figsize=(6, 3))
-    sns.heatmap(corr, annot=True, fmt=".2f", linecolor="c") #mask=mask,
-    plt.title("Pearson's Correlation Matrix")
+    le = LabelEncoder()
+    df['Churn'] = le.fit_transform(df['Churn'])
+    # corr = df.corr(numeric_only=True)
+    # # mask = np.triu(np.ones_like(corr, dtype=bool))
+    # fig= plt.figure(figsize=(6, 3))
+    # sns.heatmap(corr, annot=True, fmt=".2f", linecolor="c") #mask=mask,
+    # plt.title("Pearson's Correlation Matrix")
+    # st.pyplot(fig)
+    matrix = np.triu(df.select_dtypes('number').corr())
+    fig, ax = plt.subplots(figsize=(14,10)) 
+    sns.heatmap (df.select_dtypes('number').corr(), annot=True, fmt= '.2f', vmin=-1, vmax=1, center=0, cmap='coolwarm',mask=matrix, ax=ax)
     st.pyplot(fig)
     st.write("""
             Existe una correlación positiva entre la deserción y la edad de los clientes: la mayoría de las personas mayores abandonan. Quizás haya alguna campaña de los competidores dirigida a la población mayor.
@@ -288,30 +300,18 @@ def analisis():
             Sin embargo, es interesante que los cargos totales muestren una correlación negativa con la deserción. La explicación puede ser que los cargos totales también dependen del tiempo que el cliente ha pasado con una empresa (la permanencia tiene una correlación negativa). Además, es cuestionable si TotalCharges es una variable adecuada para comprender el comportamiento del cliente y si el cliente lo rastrea.
             Una correlación positiva entre la facturación electrónica y la deserción es algo que necesita ser explorado más (no está claro cuáles pueden ser los factores que influyen en ese comportamiento).
         """)
+
     fig = px.scatter(df,x='MonthlyCharges',y='TotalCharges')
     st.plotly_chart(fig, use_container_width=True)
-    
     st.write("""
             La gráfica de arriba muestra la relación entre MonthlyCharges y TotalCharges, como se puede esperar,
             los clientes que pagan valores mas altos mensualmente y suelen tener valores totales de cargo mayores.
         """)
     
     #############################################
-    total_charge = df["TotalCharges"]
-    missing = total_charge[~total_charge.str.replace(".", "").str.isdigit()]
-    df["TotalCharges"] = df["TotalCharges"].apply(pd.to_numeric, errors="coerce")
     
-    
-    df.drop(
-        columns=["customerID"],
-        inplace=True,
-        errors="ignore",
-    )
-
     imputer = IterativeImputer()
     df["TotalCharges"] = imputer.fit_transform(df[["TotalCharges"]])
-
-
 
     unique_counts = df.select_dtypes("O").nunique()
     binary_columns = unique_counts[unique_counts == 2].index.drop("Churn").tolist()
@@ -345,7 +345,26 @@ def analisis():
     label_encoder.fit(y_train)
     y_train = label_encoder.transform(y_train)
     y_test = label_encoder.transform(y_test)
+    #############################################################################
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(10, 5))
+    axs[0].hist(df['tenure'], bins=50)
+    axs[0].set_title('Tenure')
+    axs[1].hist(df['MonthlyCharges'], bins=50)
+    axs[1].set_title('Monthly Charges')
+    axs[2].hist(df['TotalCharges'], bins=50)
+    axs[2].set_title('Total Charges')
+    fig.tight_layout()
+    st.pyplot(fig)
+    st.write("""
+            La gráfica de arriba muestra la distribución de las variables Tenure, MonthlyCharges y TotalCharges.
+             Todas estas variables tienen una distribución no gaussiana, es decir, no normal.
+             La distribucion sesgada a la derecha del Total Charge nos dice que la mediana de clientes que 
+             pagan valores mas altos es mayor al promedio de la población.""")
 
+    st.write(df.head())
+    st.write(X_train.head())
+    st.write(X_test.head())
+    #############################################################################
     classifiers = {
         "lr": LogisticRegression(),
         "svc": SVC(),
