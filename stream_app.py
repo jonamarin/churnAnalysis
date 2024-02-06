@@ -314,7 +314,7 @@ def analisis():
     df["TotalCharges"] = imputer.fit_transform(df[["TotalCharges"]])
 
     unique_counts = df.select_dtypes("O").nunique()
-    binary_columns = unique_counts[unique_counts == 2].index.drop("Churn").tolist()
+    binary_columns = unique_counts[unique_counts == 2].index.tolist() #.index.drop("Churn").tolist()
     categorical_columns = unique_counts[unique_counts > 2].index.tolist()
     target_column = "Churn"
     X = df.drop(target_column, axis=1)
@@ -323,7 +323,6 @@ def analisis():
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.25, stratify=y, random_state=42
     )
-    #X_train.head(2)
 
     transformer = ColumnTransformer(
         [
