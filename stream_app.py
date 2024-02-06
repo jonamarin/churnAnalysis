@@ -320,100 +320,100 @@ def analisis():
     X = df.drop(target_column, axis=1)
     y = df[target_column]
 
-    # X_train, X_test, y_train, y_test = train_test_split(
-    #     X, y, test_size=0.25, stratify=y, random_state=42
-    # )
-    # #X_train.head(2)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.25, stratify=y, random_state=42
+    )
+    #X_train.head(2)
 
-    # transformer = ColumnTransformer(
-    #     [
-    #         ("scaler", StandardScaler(), ["MonthlyCharges", "TotalCharges", "tenure"]),
-    #         ("binary_encoder", OrdinalEncoder(), binary_columns),
-    #         ("ohe", OneHotEncoder(drop="first"), categorical_columns),
-    #     ],
-    #     remainder="passthrough",
-    # )
+    transformer = ColumnTransformer(
+        [
+            ("scaler", StandardScaler(), ["MonthlyCharges", "TotalCharges", "tenure"]),
+            ("binary_encoder", OrdinalEncoder(), binary_columns),
+            ("ohe", OneHotEncoder(drop="first"), categorical_columns),
+        ],
+        remainder="passthrough",
+    )
 
-    # transformer.fit(X_train)
-    # columns = transformer.get_feature_names_out()
-    # columns = list(map(lambda x: str(x).split("__")[-1], columns))
+    transformer.fit(X_train)
+    columns = transformer.get_feature_names_out()
+    columns = list(map(lambda x: str(x).split("__")[-1], columns))
 
-    # X_train = pd.DataFrame(transformer.transform(X_train), columns=columns)
-    # X_test = pd.DataFrame(transformer.transform(X_test), columns=columns)
+    X_train = pd.DataFrame(transformer.transform(X_train), columns=columns)
+    X_test = pd.DataFrame(transformer.transform(X_test), columns=columns)
 
-    # label_encoder = LabelEncoder()
-    # label_encoder.fit(y_train)
-    # y_train = label_encoder.transform(y_train)
-    # y_test = label_encoder.transform(y_test)
+    label_encoder = LabelEncoder()
+    label_encoder.fit(y_train)
+    y_train = label_encoder.transform(y_train)
+    y_test = label_encoder.transform(y_test)
 
-    # classifiers = {
-    #     "lr": LogisticRegression(),
-    #     "svc": SVC(),
-    #     "knn": KNeighborsClassifier(),
-    #     "dtree": DecisionTreeClassifier(),
-    #     "bagging": ensemble.BaggingClassifier(),
-    #     "rfc": ensemble.RandomForestClassifier(),
-    #     "extra_trees": ensemble.ExtraTreesClassifier(),
-    #     "adaboost": ensemble.AdaBoostClassifier(),
-    #     "gb": ensemble.GradientBoostingClassifier(),
-    #     "hgb": ensemble.HistGradientBoostingClassifier(),
-    #     "nb": GaussianNB(),
-    #     "nn": MLPClassifier(),
-    # }
+    classifiers = {
+        "lr": LogisticRegression(),
+        "svc": SVC(),
+        "knn": KNeighborsClassifier(),
+        "dtree": DecisionTreeClassifier(),
+        "bagging": ensemble.BaggingClassifier(),
+        "rfc": ensemble.RandomForestClassifier(),
+        "extra_trees": ensemble.ExtraTreesClassifier(),
+        "adaboost": ensemble.AdaBoostClassifier(),
+        "gb": ensemble.GradientBoostingClassifier(),
+        "hgb": ensemble.HistGradientBoostingClassifier(),
+        "nb": GaussianNB(),
+        "nn": MLPClassifier(),
+    }
 
-    # def evaluate_model(y_true, y_pred):
-    #     all_metrics = {
-    #         "acc": metrics.accuracy_score(y_true, y_pred),
-    #         "precision": metrics.precision_score(y_true, y_pred),
-    #         "recall": metrics.recall_score(y_true, y_pred),
-    #         "f1": metrics.f1_score(y_true, y_pred),
-    #     }
-    #     return all_metrics
+    def evaluate_model(y_true, y_pred):
+        all_metrics = {
+            "acc": metrics.accuracy_score(y_true, y_pred),
+            "precision": metrics.precision_score(y_true, y_pred),
+            "recall": metrics.recall_score(y_true, y_pred),
+            "f1": metrics.f1_score(y_true, y_pred),
+        }
+        return all_metrics
     
-    # model_performances = []
+    model_performances = []
 
-    # for label, model in tqdm(classifiers.items()):
-    #     n_splits = 3
-    #     kf = StratifiedKFold(shuffle=True, n_splits=n_splits, random_state=42)
-    #     performaces = np.zeros((n_splits, 4))
+    for label, model in tqdm(classifiers.items()):
+        n_splits = 3
+        kf = StratifiedKFold(shuffle=True, n_splits=n_splits, random_state=42)
+        performaces = np.zeros((n_splits, 4))
 
-    #     X_values = X_train.values
-    #     i = 0
-    #     for train_idx, test_idx in kf.split(X_values, y_train):
-    #         train_set = X_values[train_idx], y_train[train_idx]
-    #         test_set = X_values[test_idx], y_train[test_idx]
-    #         model.fit(*train_set)
-    #         y_pred = model.predict(test_set[0])
-    #         perf = evaluate_model(test_set[1], y_pred)
-    #         performaces[i, :] = list(perf.values())
-    #         i += 1
-    #     model_performances.append(
-    #         pd.Series(np.mean(performaces, axis=0), index=list(perf.keys()), name=label)
-    #     )    
-    # performaces_df = pd.concat(model_performances, axis=1)
+        X_values = X_train.values
+        i = 0
+        for train_idx, test_idx in kf.split(X_values, y_train):
+            train_set = X_values[train_idx], y_train[train_idx]
+            test_set = X_values[test_idx], y_train[test_idx]
+            model.fit(*train_set)
+            y_pred = model.predict(test_set[0])
+            perf = evaluate_model(test_set[1], y_pred)
+            performaces[i, :] = list(perf.values())
+            i += 1
+        model_performances.append(
+            pd.Series(np.mean(performaces, axis=0), index=list(perf.keys()), name=label)
+        )    
+    performaces_df = pd.concat(model_performances, axis=1)
 
-    # avg_f1 = performaces_df.loc["f1"].mean()
-    # fig, ax = plt.subplots()
-    # performaces_df.T.plot(
-    #     kind="bar",
-    #     title="Performance of models",
-    #     colormap=plt.cm.viridis,
-    #     width=0.8,
-    #     figsize=(10, 4),
-    #     ax=ax,
-    # )
-    # ylim = ax.get_ylim()
-    # ax.set(ylim=(0, ylim[-1] + 0.06))
-    # ax.hlines(avg_f1, *ax.get_xlim(), ls="--", label="avg_f1", lw=1.2)
-    # ax.legend(
-    #     loc="best",
-    #     shadow=True,
-    #     frameon=True,
-    #     facecolor="inherit",
-    #     bbox_to_anchor=(0.15, 0.01, 1, 1),
-    #     title="Metrics",
-    # )
-    # st.pyplot(fig)
+    avg_f1 = performaces_df.loc["f1"].mean()
+    fig, ax = plt.subplots()
+    performaces_df.T.plot(
+        kind="bar",
+        title="Performance of models",
+        colormap=plt.cm.viridis,
+        width=0.8,
+        figsize=(10, 4),
+        ax=ax,
+    )
+    ylim = ax.get_ylim()
+    ax.set(ylim=(0, ylim[-1] + 0.06))
+    ax.hlines(avg_f1, *ax.get_xlim(), ls="--", label="avg_f1", lw=1.2)
+    ax.legend(
+        loc="best",
+        shadow=True,
+        frameon=True,
+        facecolor="inherit",
+        bbox_to_anchor=(0.15, 0.01, 1, 1),
+        title="Metrics",
+    )
+    st.pyplot(fig)
     st.markdown("""
     **Conclusiones**
 
