@@ -360,9 +360,7 @@ def analisis():
              La distribucion sesgada a la derecha del Total Charge nos dice que la mediana de clientes que 
              pagan valores mas altos es mayor al promedio de la población.""")
 
-    st.write(df.head())
     st.write(X_train.head())
-    st.write(X_test.head())
     #############################################################################
     classifiers = {
         "lr": LogisticRegression(),
