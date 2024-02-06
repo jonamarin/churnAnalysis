@@ -169,27 +169,40 @@ def analisis():
     df=pd.read_csv('WA_Fn-UseC_-Telco-Customer-Churn.csv')
     #['customerID', 'gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling', 'PaymentMethod', 'MonthlyCharges', 'TotalCharges', 'Churn']
     st.write(df.head())
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             Los datos con los que se realiza el analisis tienen que ver con variables socio-demograficas como 
             (edad, genero, etc) y del servicio que maneja cada cliente.
         """)
     st.markdown('')
     fig = px.bar(df, x='Churn')
     st.plotly_chart(fig, use_container_width=True)
+    y = df['Churn']
+    st.write(f'Porcentage que abandona (Churn):  {round(y.value_counts(normalize=True)[1]*100,2)} %  --> ({y.value_counts()[1]} Clientes)')
+    st.write(f'Porcentage de clientes que no abandonan (no Churn): {round(y.value_counts(normalize=True)[0]*100,2)}  %  --> ({y.value_counts()[0]} Clientes)')
+        
     #colors=["lightgreen", "red"]
     fig = px.pie(df, names='Churn')
     st.plotly_chart(fig, use_container_width=True)
-    
-    fig = px.box(df, x='Churn', y='tenure')
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             La gráfica de arriba muestra la cantidad de abandono y no abandono del servicio. Observamos el desbalance
             en esta clase, siendo mayor la cantidad de personas que no se retiran que aquellas que se retiran.
         """)
+
+    st.write("Hallazgo iniciales:")
+    st.markdown("- Tenemos datos desequilibrados.")
+    st.markdown("- Casi el 27% de los clientes no continuaron con la empresa y abandonaron. 1869 clientes abandonados.")
+    st.markdown("- Casi el 73% de los clientes continúan con la empresa y no abandonaron. 5174 clientes no abandonaron.")
+    st.markdown('''
+    <style>
+    [data-testid="stMarkdownContainer"] ul{
+        list-style-position: inside;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+    
+    fig = px.box(df, x='Churn', y='tenure')
     st.plotly_chart(fig, use_container_width=True)
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             La gráfica de arriba muestra que existe una diferencia estadisticamente representativa
             entre la antiguedad del cliente y su propensión al abandono del servicio. Las personas con 
             mayor antiguedad son menos probables a renunciar al servicio, mientras que los más nuevos
@@ -220,8 +233,7 @@ def analisis():
     
     fig = px.pie(df, names='PaymentMethod')
     st.plotly_chart(fig, use_container_width=True)
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             La gráfica de arriba muestra la la preferencia entre los usuarios respecto al medio de pago.
             Se puede observar que el medio preferido de pago es 'Electronic Check', seguido por 'Mailed check',
             'Bank transfer' y por ultimo 'credit card'.
@@ -269,19 +281,17 @@ def analisis():
     sns.heatmap(corr, annot=True, fmt=".2f", linecolor="c") #mask=mask,
     plt.title("Pearson's Correlation Matrix")
     st.pyplot(fig)
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             Existe una correlación positiva entre la deserción y la edad de los clientes: la mayoría de las personas mayores abandonan. Quizás haya alguna campaña de los competidores dirigida a la población mayor.
-Lógicamente, una permanencia más prolongada también podría significar más lealtad y menos riesgo de abandono.
-También es lógico que más cargos mensuales puedan generar un mayor riesgo de abandono.
-Sin embargo, es interesante que los cargos totales muestren una correlación negativa con la deserción. La explicación puede ser que los cargos totales también dependen del tiempo que el cliente ha pasado con una empresa (la permanencia tiene una correlación negativa). Además, es cuestionable si TotalCharges es una variable adecuada para comprender el comportamiento del cliente y si el cliente lo rastrea.
-Una correlación positiva entre la facturación electrónica y la deserción es algo que necesita ser explorado más (no está claro cuáles pueden ser los factores que influyen en ese comportamiento).
+            Lógicamente, una permanencia más prolongada también podría significar más lealtad y menos riesgo de abandono.
+            También es lógico que más cargos mensuales puedan generar un mayor riesgo de abandono.
+            Sin embargo, es interesante que los cargos totales muestren una correlación negativa con la deserción. La explicación puede ser que los cargos totales también dependen del tiempo que el cliente ha pasado con una empresa (la permanencia tiene una correlación negativa). Además, es cuestionable si TotalCharges es una variable adecuada para comprender el comportamiento del cliente y si el cliente lo rastrea.
+            Una correlación positiva entre la facturación electrónica y la deserción es algo que necesita ser explorado más (no está claro cuáles pueden ser los factores que influyen en ese comportamiento).
         """)
     fig = px.scatter(df,x='MonthlyCharges',y='TotalCharges')
     st.plotly_chart(fig, use_container_width=True)
     
-    with st.expander("Ver explicación"):
-        st.write("""
+    st.write("""
             La gráfica de arriba muestra la relación entre MonthlyCharges y TotalCharges, como se puede esperar,
             los clientes que pagan valores mas altos mensualmente y suelen tener valores totales de cargo mayores.
         """)
@@ -310,100 +320,115 @@ Una correlación positiva entre la facturación electrónica y la deserción es 
     X = df.drop(target_column, axis=1)
     y = df[target_column]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, stratify=y, random_state=42
-    )
-    #X_train.head(2)
+    # X_train, X_test, y_train, y_test = train_test_split(
+    #     X, y, test_size=0.25, stratify=y, random_state=42
+    # )
+    # #X_train.head(2)
 
-    transformer = ColumnTransformer(
-        [
-            ("scaler", StandardScaler(), ["MonthlyCharges", "TotalCharges", "tenure"]),
-            ("binary_encoder", OrdinalEncoder(), binary_columns),
-            ("ohe", OneHotEncoder(drop="first"), categorical_columns),
-        ],
-        remainder="passthrough",
-    )
+    # transformer = ColumnTransformer(
+    #     [
+    #         ("scaler", StandardScaler(), ["MonthlyCharges", "TotalCharges", "tenure"]),
+    #         ("binary_encoder", OrdinalEncoder(), binary_columns),
+    #         ("ohe", OneHotEncoder(drop="first"), categorical_columns),
+    #     ],
+    #     remainder="passthrough",
+    # )
 
-    transformer.fit(X_train)
-    columns = transformer.get_feature_names_out()
-    columns = list(map(lambda x: str(x).split("__")[-1], columns))
+    # transformer.fit(X_train)
+    # columns = transformer.get_feature_names_out()
+    # columns = list(map(lambda x: str(x).split("__")[-1], columns))
 
-    X_train = pd.DataFrame(transformer.transform(X_train), columns=columns)
-    X_test = pd.DataFrame(transformer.transform(X_test), columns=columns)
+    # X_train = pd.DataFrame(transformer.transform(X_train), columns=columns)
+    # X_test = pd.DataFrame(transformer.transform(X_test), columns=columns)
 
-    label_encoder = LabelEncoder()
-    label_encoder.fit(y_train)
-    y_train = label_encoder.transform(y_train)
-    y_test = label_encoder.transform(y_test)
+    # label_encoder = LabelEncoder()
+    # label_encoder.fit(y_train)
+    # y_train = label_encoder.transform(y_train)
+    # y_test = label_encoder.transform(y_test)
 
-    classifiers = {
-        "lr": LogisticRegression(),
-        "svc": SVC(),
-        "knn": KNeighborsClassifier(),
-        "dtree": DecisionTreeClassifier(),
-        "bagging": ensemble.BaggingClassifier(),
-        "rfc": ensemble.RandomForestClassifier(),
-        "extra_trees": ensemble.ExtraTreesClassifier(),
-        "adaboost": ensemble.AdaBoostClassifier(),
-        "gb": ensemble.GradientBoostingClassifier(),
-        "hgb": ensemble.HistGradientBoostingClassifier(),
-        "nb": GaussianNB(),
-        "nn": MLPClassifier(),
-    }
+    # classifiers = {
+    #     "lr": LogisticRegression(),
+    #     "svc": SVC(),
+    #     "knn": KNeighborsClassifier(),
+    #     "dtree": DecisionTreeClassifier(),
+    #     "bagging": ensemble.BaggingClassifier(),
+    #     "rfc": ensemble.RandomForestClassifier(),
+    #     "extra_trees": ensemble.ExtraTreesClassifier(),
+    #     "adaboost": ensemble.AdaBoostClassifier(),
+    #     "gb": ensemble.GradientBoostingClassifier(),
+    #     "hgb": ensemble.HistGradientBoostingClassifier(),
+    #     "nb": GaussianNB(),
+    #     "nn": MLPClassifier(),
+    # }
 
-    def evaluate_model(y_true, y_pred):
-        all_metrics = {
-            "acc": metrics.accuracy_score(y_true, y_pred),
-            "precision": metrics.precision_score(y_true, y_pred),
-            "recall": metrics.recall_score(y_true, y_pred),
-            "f1": metrics.f1_score(y_true, y_pred),
-        }
-        return all_metrics
+    # def evaluate_model(y_true, y_pred):
+    #     all_metrics = {
+    #         "acc": metrics.accuracy_score(y_true, y_pred),
+    #         "precision": metrics.precision_score(y_true, y_pred),
+    #         "recall": metrics.recall_score(y_true, y_pred),
+    #         "f1": metrics.f1_score(y_true, y_pred),
+    #     }
+    #     return all_metrics
     
-    model_performances = []
+    # model_performances = []
 
-    for label, model in tqdm(classifiers.items()):
-        n_splits = 3
-        kf = StratifiedKFold(shuffle=True, n_splits=n_splits, random_state=42)
-        performaces = np.zeros((n_splits, 4))
+    # for label, model in tqdm(classifiers.items()):
+    #     n_splits = 3
+    #     kf = StratifiedKFold(shuffle=True, n_splits=n_splits, random_state=42)
+    #     performaces = np.zeros((n_splits, 4))
 
-        X_values = X_train.values
-        i = 0
-        for train_idx, test_idx in kf.split(X_values, y_train):
-            train_set = X_values[train_idx], y_train[train_idx]
-            test_set = X_values[test_idx], y_train[test_idx]
-            model.fit(*train_set)
-            y_pred = model.predict(test_set[0])
-            perf = evaluate_model(test_set[1], y_pred)
-            performaces[i, :] = list(perf.values())
-            i += 1
-        model_performances.append(
-            pd.Series(np.mean(performaces, axis=0), index=list(perf.keys()), name=label)
-        )    
-    performaces_df = pd.concat(model_performances, axis=1)
+    #     X_values = X_train.values
+    #     i = 0
+    #     for train_idx, test_idx in kf.split(X_values, y_train):
+    #         train_set = X_values[train_idx], y_train[train_idx]
+    #         test_set = X_values[test_idx], y_train[test_idx]
+    #         model.fit(*train_set)
+    #         y_pred = model.predict(test_set[0])
+    #         perf = evaluate_model(test_set[1], y_pred)
+    #         performaces[i, :] = list(perf.values())
+    #         i += 1
+    #     model_performances.append(
+    #         pd.Series(np.mean(performaces, axis=0), index=list(perf.keys()), name=label)
+    #     )    
+    # performaces_df = pd.concat(model_performances, axis=1)
 
-    avg_f1 = performaces_df.loc["f1"].mean()
-    fig, ax = plt.subplots()
-    performaces_df.T.plot(
-        kind="bar",
-        title="Performance of models",
-        colormap=plt.cm.viridis,
-        width=0.8,
-        figsize=(10, 4),
-        ax=ax,
-    )
-    ylim = ax.get_ylim()
-    ax.set(ylim=(0, ylim[-1] + 0.06))
-    ax.hlines(avg_f1, *ax.get_xlim(), ls="--", label="avg_f1", lw=1.2)
-    ax.legend(
-        loc="best",
-        shadow=True,
-        frameon=True,
-        facecolor="inherit",
-        bbox_to_anchor=(0.15, 0.01, 1, 1),
-        title="Metrics",
-    )
-    st.pyplot(fig)
+    # avg_f1 = performaces_df.loc["f1"].mean()
+    # fig, ax = plt.subplots()
+    # performaces_df.T.plot(
+    #     kind="bar",
+    #     title="Performance of models",
+    #     colormap=plt.cm.viridis,
+    #     width=0.8,
+    #     figsize=(10, 4),
+    #     ax=ax,
+    # )
+    # ylim = ax.get_ylim()
+    # ax.set(ylim=(0, ylim[-1] + 0.06))
+    # ax.hlines(avg_f1, *ax.get_xlim(), ls="--", label="avg_f1", lw=1.2)
+    # ax.legend(
+    #     loc="best",
+    #     shadow=True,
+    #     frameon=True,
+    #     facecolor="inherit",
+    #     bbox_to_anchor=(0.15, 0.01, 1, 1),
+    #     title="Metrics",
+    # )
+    # st.pyplot(fig)
+    st.markdown("""
+    **Conclusiones**
+
+    ---
+    Actualmente el mercado de las telecomunicaciones se enfrenta a una dura competencia. La predicción de la pérdida de clientes se ha convertido en una cuestión importante en la gestión de las relaciones con los clientes para retener clientes valiosos. Por lo tanto, al realizar una investigación, se comprenderán bien los factores clave de la deserción para retener clientes y su influencia en la deserción.
+
+    Una gestión adecuada de la deserción puede ahorrar una gran cantidad de dinero a la empresa. Por tanto, el valor económico de la retención de clientes se puede resumir como:
+
+    Los clientes satisfechos pueden atraer nuevos clientes.
+    Los clientes a largo plazo generalmente no se dejan influenciar mucho por los competidores.
+    Los clientes a largo plazo tienden a comprar más.
+    La empresa puede centrarse en satisfacer las necesidades de los clientes existentes.
+    Los clientes perdidos comparten experiencias negativas y por lo tanto tendrán una influencia negativa en la imagen de la empresa.
+    Por lo tanto, la retención de clientes en función de, por ejemplo, {precio, calidad del servicio, satisfacción del cliente, imagen de marca} podría conducir a una mejor lealtad del cliente..
+    """)
     ############################################
 
 def prediccion():
