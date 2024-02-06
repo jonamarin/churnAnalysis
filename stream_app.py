@@ -293,6 +293,22 @@ def analisis():
     fig, ax = plt.subplots(figsize=(14,10)) 
     sns.heatmap (df.select_dtypes('number').corr(), annot=True, fmt= '.2f', vmin=-1, vmax=1, center=0, cmap='coolwarm',mask=matrix, ax=ax)
     st.pyplot(fig)
+    
+    st.write("Hallazgos:")
+    st.markdown("- Existe una fuerte correlación entre la tenencia y los cargos totales.")
+    st.markdown("- Ser una persona mayor y aumentar los cargos mensuales tienen una correlación positiva con la deserción.")
+    st.markdown("- Las personas mayores tienen más probabilidades de abandonar que los clientes más jóvenes.")
+    st.markdown("- Los clientes con cargos mensuales más altos también tienen más probabilidades de abandonar que los clientes con cargos mensuales más bajos.")
+    st.markdown("- Al estar a largo plazo con la empresa, es menos probable que los clientes abandonen que los clientes con menos tiempo en la empresa.")
+    st.markdown("- Los cargos totales tienen una correlación negativa con la rotación.")
+    st.markdown('''
+    <style>
+    [data-testid="stMarkdownContainer"] ul{
+        list-style-position: inside;
+    }
+    </style>
+    ''', unsafe_allow_html=True)
+
     st.write("""
             Existe una correlación positiva entre la deserción y la edad de los clientes: la mayoría de las personas mayores abandonan. Quizás haya alguna campaña de los competidores dirigida a la población mayor.
             Lógicamente, una permanencia más prolongada también podría significar más lealtad y menos riesgo de abandono.
