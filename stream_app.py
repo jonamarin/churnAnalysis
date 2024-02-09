@@ -324,6 +324,18 @@ def analisis():
             los clientes que pagan valores mas altos mensualmente y suelen tener valores totales de cargo mayores.
         """)
     
+    fig = px.histogram(df, x="Partner", color="Churn",width=400, height=400)
+    st.plotly_chart(fig)
+    st.write(f'Un cliente con pareja tiene una probabilidad de {round(df[df["Partner"]=="Yes"]["Churn"].mean()*100,2)} % churn')
+
+    st.write()
+
+    st.write(f'Un cliente sin pareja tiene una probabilidad de {round(df[df["Partner"]=="No"]["Churn"].mean()*100,2)} % churn')
+    st.write('Los clientes sin ninguna relación, clientes solteros tienen casi 1,7 veces más probabilidades de abandono que clientes con pareja.')
+
+    st.markdown(""" 
+    
+    """)
     #############################################
     
     imputer = IterativeImputer()
@@ -376,7 +388,9 @@ def analisis():
              La distribucion sesgada a la derecha del Total Charge nos dice que la mediana de clientes que 
              pagan valores mas altos es mayor al promedio de la población.""")
 
+    
     st.write(X_train.head())
+    st.markdown("Espere a que el modelo se entrene...")
     #############################################################################
     classifiers = {
         "lr": LogisticRegression(),
